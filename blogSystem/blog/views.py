@@ -163,6 +163,9 @@ def logout_view(request):
 # User dashboard
 @login_required
 def user_dashboard(request):
+    if request.user.is_superuser:
+        return redirect('admin-dashboard')
+    
     posts = BlogPost.objects.filter(author=request.user).order_by('-created_at')
     return render(request, 'blog/dashboard.html', {'posts': posts})
 
