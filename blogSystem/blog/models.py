@@ -1,20 +1,27 @@
 from django.db import models
 from django.contrib.auth.models import User
+from django.utils.text import slugify
 from django.utils import timezone
 from datetime import timedelta
 
+# BlogPost model
 class BlogPost(models.Model):
     title = models.CharField(max_length=255)
+    slug = models.SlugField(unique=True, blank=True)  # For SEO-friendly URLs
     content = models.TextField()
     image = models.ImageField(upload_to='blog_images/', blank=True, null=True)
-    tags = models.CharField(max_length=255, blank=True)
+    tags = models.CharField(max_length=255, blank=True)  # Comma-separated tags
     author = models.ForeignKey(User, on_delete=models.CASCADE)
     created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)  # Used in admin panel
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def save(self, *args, **kwargs):
+        if not self.slug:
+            self.slug = slugify(self.title)
+        super().save(*args, **kwargs)
 
     def __str__(self):
         return self.title
-
 
 # OTP model for email verification with expiration logic
 class OTPVerification(models.Model):
@@ -29,8 +36,8 @@ class OTPVerification(models.Model):
 
     def is_expired(self):
         return self.expiry_time < timezone.now()
-    
+
     def save(self, *args, **kwargs):
         if not self.expiry_time:
-            self.expiry_time = self.created_at + timedelta(minutes=10)  # Set expiry time to 10 minutes from creation
+            self.expiry_time = self.created_at + timedelta(minutes=10)  # OTP valid for 10 minutes
         super().save(*args, **kwargs)

@@ -21,6 +21,7 @@
                     {% if user.is_authenticated %}
                         <li class="nav-item"><a href="{% url 'dashboard' %}" class="nav-link text-white">Dashboard</a></li>
                         <li class="nav-item"><a href="{% url 'create_post' %}" class="nav-link text-white">Create Post</a></li>
+                        <li class="nav-item"><a href="{% url 'logout' %}" class="nav-link text-white">Logout</a></li>
                         <li class="nav-item nav-link text-white">Welcome, {{ user.username }}</li>
                     {% else %}
                         <li class="nav-item"><a href="{% url 'login' %}" class="nav-link text-white">Login</a></li>
@@ -52,6 +53,7 @@
         </div>
     </footer>
 
+    <!-- Scroll to Top button -->
     <button class="scroll-to-top-btn btn btn-primary" onclick="window.scrollTo({ top: 0, behavior: 'smooth' })">
         ↑
     </button>

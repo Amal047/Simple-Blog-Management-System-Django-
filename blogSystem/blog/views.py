@@ -8,6 +8,7 @@ from django.contrib import messages
 from django.http import HttpResponseForbidden
 from django.contrib.auth.models import User
 from django.core.mail import send_mail
+from django.views.decorators.http import require_POST
 import random
 
 # Helper function to generate OTP
@@ -92,7 +93,7 @@ def login_view(request):
         if user is not None:
             login(request, user)
             if user.is_superuser:
-                return redirect('/admin/')
+                return redirect('/admin-dashboard/')  # Redirect to custom admin page
             else:
                 return redirect('dashboard')
         else:
@@ -187,3 +188,60 @@ def update_user_info(request):
         form = CustomUserChangeForm(instance=request.user)
 
     return render(request, 'blog/updateUserInfo.html', {'form': form})
+
+# Admin dashboard view (only for superuser)
+@login_required
+def admin_dashboard(request):
+    if not request.user.is_superuser:
+        return redirect('index')  # Redirect to index if user is not superuser
+
+    # Get all users and their blog posts
+    users = User.objects.all()
+    blog_posts = BlogPost.objects.all().order_by('-created_at')
+
+    paginator = Paginator(blog_posts, 5)
+    page_number = request.GET.get("page")
+    page_obj = paginator.get_page(page_number)
+
+    return render(request, 'blog/admin_dashboard.html', {'users': users, 'blog_posts': page_obj})
+
+@login_required
+def admin_view_user(request, user_id):
+    if not request.user.is_superuser:
+        return redirect('index')
+    
+    user = get_object_or_404(User, id=user_id)
+    posts = BlogPost.objects.filter(author=user)
+
+    return render(request, 'blog/admin_view_user.html', {'user_obj': user, 'posts': posts})
+
+@login_required
+@require_POST
+def delete_user_view(request, user_id):
+    if not request.user.is_superuser:
+        return HttpResponseForbidden("Only admins can delete users.")
+
+    user_to_delete = get_object_or_404(User, id=user_id)
+
+    if user_to_delete == request.user:
+        messages.error(request, "You cannot delete your own account.")
+        return redirect('admin-view-user', user_id=user_id)
+
+    if user_to_delete.is_superuser:
+        messages.error(request, "You cannot delete another admin user.")
+        return redirect('admin-view-user', user_id=user_id)
+
+    user_to_delete.delete()
+    messages.success(request, "User has been deleted successfully.")
+    return redirect('admin-dashboard')
+
+# Revoke/Delete a blog post (only for superuser)
+@login_required
+def revoke_blog_post(request, post_id):
+    if not request.user.is_superuser:
+        return redirect('index')  # Redirect if not a superuser
+
+    post = get_object_or_404(BlogPost, id=post_id)
+    post.delete()
+    messages.success(request, "Blog post has been revoked (deleted).")
+    return redirect('admin-dashboard')
