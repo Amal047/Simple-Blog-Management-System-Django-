@@ -61,3 +61,9 @@ Replace your-email@gmail.com in views.py with your actual email or configure a p
 Ensure CSRF protection is enabled on forms (already included).
 
 User deletion and post revocation actions require confirmation.
+
+## SuperUser details:
+
+# username:admin
+
+# password:adminadmin
