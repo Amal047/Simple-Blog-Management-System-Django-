@@ -1,0 +1,17 @@
+Install the database driver
+For PostgreSQL:
+pip install psycopg2
+or
+pip install psycopg2-binary
+
+PostgreSQL:
+DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': 'your_db_name',
+        'USER': 'your_username',
+        'PASSWORD': 'your_password',
+        'HOST': 'localhost',  # or your cloud DB host
+        'PORT': '5432',
+    }
+}
